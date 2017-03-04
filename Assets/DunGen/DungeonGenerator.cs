@@ -13,7 +13,7 @@ public class DungeonGenerator : MonoBehaviour {
 
     // to not devour enormouse amounts of memory, just build the cost grid after completion?
     private int[,] costGrid;// = new int[ApplicationConstants.DUNGEON_HEIGHT][ApplicationConstants.DUNGEON_WIDTH];
-
+    private List<Vector2> floorTiles = new List<Vector2>();
     private int[,] automataMap = new int[ApplicationConstants.DUNGEON_HEIGHT,ApplicationConstants.DUNGEON_WIDTH];
     private int[,] previousAutomataMap = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
 
@@ -22,24 +22,27 @@ public class DungeonGenerator : MonoBehaviour {
     // Use this for initialization
     void Start() {
         getAutomataMatrix();
+        Random.seed = 42;
         //        printMatrix(automataMap);
-
+        floodFillMap();
         for (int i = 0; i < automataMap.GetLength(0); i++)
         {
             for (int j = 0; j < automataMap.GetLength(1); j++) {
-                GameObject tmp = null;
-                if (automataMap[i, j] == 1)
+                //if (!(i == 0 && j == 7))
                 {
-                    tmp = GameObject.Instantiate(Resources.Load("Environment/Wall")) as GameObject;
+                    GameObject tmp = null;
+                    if (automataMap[i, j] == 0)
+                    {
+                        tmp = GameObject.Instantiate(Resources.Load("Environment/Wall")) as GameObject;
+                    }
+                    else
+                    {
+                        tmp = GameObject.Instantiate(Resources.Load("Environment/Ground")) as GameObject;
+                    }
+                    tmp.transform.Translate(j * 0.16f, i * 0.16f, 0);
                 }
-                else
-                {
-                    tmp = GameObject.Instantiate(Resources.Load("Environment/Ground")) as GameObject;
-                }
-                tmp.transform.Translate(j*0.16f, i*0.16f, 0);
             }
         }
-
 
     }
 	
@@ -47,6 +50,42 @@ public class DungeonGenerator : MonoBehaviour {
 	void Update () {
 		
 	}
+
+    // recursive function for finding size of a room.
+    // flood fill until you hit a wall
+    private int[,] checkedCells;
+    private void floodFillMap()
+    {
+        checkedCells = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
+        foreach(Vector2 floor in floorTiles)
+        {
+            if(checkedCells[(int)floor.y, (int)floor.x] == 0)
+            {
+                Debug.Log(floodFill((int)floor.x, (int)floor.y));
+            }
+        }
+    }
+    private int floodFill(int x, int y)
+    {
+//        Debug.Log(x + ", " + y);
+        // if the value is a wall, return
+        if(automataMap[y, x] == 0 || checkedCells[y,x] == 1)
+        {
+            checkedCells[y, x] = 1;
+            return 0;
+        }
+        int size = 0;
+        checkedCells[y, x] = 1;
+        if(x > 0)
+            size += floodFill(x - 1, y);
+        if(x < ApplicationConstants.DUNGEON_WIDTH-1)
+            size += floodFill(x + 1, y);
+        if(y > 0)
+            size += floodFill(x, y - 1);
+        if(y < ApplicationConstants.DUNGEON_HEIGHT-1)
+            size += floodFill(x, y + 1);
+        return size + 1;
+    }
 
 
     // cellular automata creation
@@ -125,6 +164,10 @@ public class DungeonGenerator : MonoBehaviour {
                         automataMap[y, x] = 1;
                     else
                         automataMap[y, x] = 0;
+                }
+                if(automataMap[y, x] == 1)
+                {
+                    floorTiles.Add(new Vector2(x, y));
                 }
             }
         }
