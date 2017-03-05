@@ -21,17 +21,26 @@ public class DungeonGenerator : MonoBehaviour {
     private int[,] previousAutomataMap = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
 
     private List<List<Vector2>> rooms = new List<List<Vector2>>();
+    private List<Vector2> roomCenters = new List<Vector2>();
 
     private Dictionary<Vector2, List<string>> tileContents = new Dictionary<Vector2, List<string>>();
 
     // Use this for initialization
     void Start() {
         getAutomataMatrix();
-        Random.seed = 42;
+        Random.seed = 420;
         //        printMatrix(automataMap);
         floodFillMap();
         fillTinyRooms();
+        getRoomCenters();
         connectRooms();
+        /*
+        for(int i = 0; i < rooms.Count; i++)
+        {
+            Debug.Log("center of room #" + i + " is " + roomCenters[i].x + ", " + roomCenters[i].y);
+            Debug.Log("closest room to room #" + i + " is room #" + findClosestRoom(i));
+        }
+        */
         for (int i = 0; i < automataMap.GetLength(0); i++)
         {
             for (int j = 0; j < automataMap.GetLength(1); j++) {
@@ -72,55 +81,126 @@ public class DungeonGenerator : MonoBehaviour {
             }
         }
     }
-    
+
+    // get the center of each room
+    // o o o o[x]o o o
+    // o{x}x x x x o o
+    // o x o x x o o o
+    // o x x x[x]x{x}o
+    // o o o o o o o o 
+    // get the highest and lowest horizontal tile of a room (indicated with {x})
+    // and the highest and lowest vertical tile of a room (indicated with [x])
+    // then take their average and you have the center of a room!
+    private void getRoomCenters()
+    {
+        foreach (List<Vector2> room in rooms.ToArray())
+        {
+            int smallestX = (int)room[0].x,
+                largestX = (int)room[0].x,
+                smallestY = (int)room[0].y,
+                largestY = (int)room[0].y;
+
+            foreach (Vector2 tile in room)
+            {
+                if (tile.x < smallestX)
+                    smallestX = (int)tile.x;
+                else if (tile.x > largestX)
+                    largestX = (int)tile.x;
+                if (tile.y < smallestY)
+                    smallestY = (int)tile.y;
+                else if (tile.y > largestY)
+                    largestY = (int)tile.y;
+            }
+
+            int centerX = (smallestX + largestX) / 2,
+                centerY = (smallestY + largestY) / 2;
+            roomCenters.Add(new Vector2(centerX, centerY));
+        }
+    }
+
+    // finds the closest room and returns its index
+    private int findClosestRoom(int room, List<int> ignoreRooms)
+    {
+        Vector2 sourceRoomCenter = roomCenters[room];
+        float smallestDistance = float.MaxValue;
+        int index = 0;
+
+        for(int i = 0; i < roomCenters.Count; i++)
+        {
+            if (i == room || ignoreRooms.Contains(i))
+                continue;
+            Vector2 curRoomCenter = roomCenters[i];
+            float curDist = Vector2.Distance(sourceRoomCenter, curRoomCenter);
+            if (curDist < smallestDistance)
+            {
+                smallestDistance = curDist;
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
+    private int findClosestRoom(int room)
+    {
+        return findClosestRoom(room, new List<int>());
+    }
 
     private void connectRooms()
     {
         // we have rooms A, B, C, D
         // we need them all to connect
-        // as long as each room connects to at least one other room that does not connect to itself,
-        // then all rooms will be connected
-
-        // rooms that haven't connect to any room yet
-        List<int> disconnectedRooms = new List<int>();
-        disconnectedRooms.AddRange(Enumerable.Range(0, 10));
+        // for each room except the last in the map
+        //      connect to the closest room that it is not connected to
 
         // all of the room connections
         Dictionary<int, List<int>> roomConnections = new Dictionary<int, List<int>>();
+        List<int> pastRoomConnections = new List<int>();
+
+        // initialize the list
+        for(int i = 0; i < rooms.Count; i++)
+        {
+            roomConnections.Add(i, new List<int>());
+        }
 
         for (int i = 0; i < rooms.Count; i++)
         {
-            List<Vector2> room = rooms[i];
-            // connect to some rooms
-            List<int> connectedRooms = new List<int>();
-            // keep searching for rooms to connect
-            for (int k = 0; k < Random.Range(1, maxRoomConnections); k++)
-            {
-                int roomToTryConnect = Random.Range(0, disconnectedRooms.Count);
-                if(!roomConnections[i].Contains(i))
-                {
-                    
-                } 
-                else
-                {
-                    // try again
-                    k--;
-                }
-            }
+            //List<Vector2> room = rooms[i];
+            //bool roomFound = false;
+
+            // find the closest room that isn't already connected
+            int targetRoom = findClosestRoom(i, pastRoomConnections);
+            pastRoomConnections.Add(i);
+            pastRoomConnections.Add(targetRoom);
+            //            int targetRoom = findClosestRoom(i, roomConnections[i]);
+            // add to both rooms the fact that they're now connected
+            //            roomConnections[i].Add(targetRoom);
+            //            roomConnections[targetRoom].Add(i);
+
             // select a random tile to act as the door
             // this should be
-            int tile = Random.Range(0, room.Count - 1);
-            
+            Vector2 startTile = roomCenters[i];
+            Vector2 endTile = roomCenters[targetRoom];
+            carveCorridor(startTile, endTile);
         }
+        /*
+        for(int i = 0; i < roomConnections.Count; i++)
+        {
+            string rms = "";
+            foreach (int rm in roomConnections[i])
+                rms += rm + ", ";
+            Debug.Log("room #" + i + " is connected with room(s) " + rms);
+        }
+        */
     }
 
     // use 'dumb' pathfinding to connect rooms
-    private void carveCorridor(int startX, int startY, int targetX, int targetY)
+    private void carveCorridor(Vector2 start, Vector2 target)
     {
-        int currentX = startX, currentY = startY;
-        while(currentX != targetX)
+        float currentX = start.x, currentY = start.y;
+        while(currentX != target.x)
         {
-            if (currentX < targetX)
+            if (currentX < target.x)
             {
                 currentX++;
             }
@@ -128,11 +208,11 @@ public class DungeonGenerator : MonoBehaviour {
             {
                 currentX--;
             }
-            automataMap[currentY, currentX] = 1;
+            automataMap[(int)currentY, (int)currentX] = 1;
         }
-        while(currentY != targetY)
+        while(currentY != target.y)
         {
-            if(currentY < targetY)
+            if(currentY < target.y)
             {
                 currentY++;
             }
@@ -140,7 +220,7 @@ public class DungeonGenerator : MonoBehaviour {
             {
                 currentY--;
             }
-            automataMap[currentY, currentX] = 1;
+            automataMap[(int)currentY, (int)currentX] = 1;
         }
     }
 

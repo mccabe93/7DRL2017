@@ -83,6 +83,8 @@
   <ItemGroup>
     <Compile Include="Assets\ApplicationConstants.cs" />
     <Compile Include="Assets\DunGen\DungeonGenerator.cs" />
+    <Compile Include="Assets\Pathfinding\AStart_Pathfind.cs" />
+    <Compile Include="Assets\testcontrols.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
