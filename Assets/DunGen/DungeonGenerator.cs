@@ -9,6 +9,8 @@ public class DungeonGenerator : MonoBehaviour {
     public int automata_BirthLimit = 4, automata_DeathLimit = 3, automata_Generations = 2;
     public float automata_InitalAlivePercent = 0.4f;
 
+    public int[,] map { get; private set; }
+
     public int maxRoomConnections = 3;
 
     public Sprite wall;
@@ -25,11 +27,15 @@ public class DungeonGenerator : MonoBehaviour {
 
     private Dictionary<Vector2, List<string>> tileContents = new Dictionary<Vector2, List<string>>();
 
+    private void Start()
+    {
+   //     init();
+    }
+
     // Use this for initialization
-    void Start() {
+    public void init() {
         getAutomataMatrix();
         Random.seed = 420;
-        //        printMatrix(automataMap);
         floodFillMap();
         fillTinyRooms();
         getRoomCenters();
@@ -60,12 +66,8 @@ public class DungeonGenerator : MonoBehaviour {
             }
         }
 
+        map = automataMap;
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
     private void fillTinyRooms(int minSize = 10)
     {

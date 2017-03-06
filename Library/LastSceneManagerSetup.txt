@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/DunGen/dungen.unity
+- path: Assets/DunGen/shadowcasting/shadowcasting.unity
   isLoaded: 1
   isActive: 1

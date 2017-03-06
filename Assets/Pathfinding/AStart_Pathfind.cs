@@ -19,9 +19,9 @@ public class AStar_Pathfind : MonoBehaviour
     {
         #region Testing Area Only
         //UNIT TESTING AREA
-        //Vector2 start = new Vector2(0, 0);
-        //Vector2 end = new Vector2(2, 4);
-        //Path thePath = getPath(start, end);
+        Vector2 start = new Vector2(0, 0);
+        Vector2 end = new Vector2(2, 4);
+        Path thePath = getPath(start, end);
         //END UNIT TESTING
         #endregion
 
