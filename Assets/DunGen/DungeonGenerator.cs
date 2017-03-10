@@ -7,7 +7,7 @@ public class DungeonGenerator : MonoBehaviour {
 
     // constants for generating our automata
     public int automata_BirthLimit = 4, automata_DeathLimit = 3, automata_Generations = 2;
-    public float automata_InitalAlivePercent = 0.4f;
+    public float automata_InitalAlivePercent = 0.7f;
 
     public int[,] map { get; private set; }
 
@@ -47,26 +47,42 @@ public class DungeonGenerator : MonoBehaviour {
             Debug.Log("closest room to room #" + i + " is room #" + findClosestRoom(i));
         }
         */
-        for (int i = 0; i < automataMap.GetLength(0); i++)
+        map = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
+        for (int y = 0; y < automataMap.GetLength(0); y++)
+            for (int x = 0; x < automataMap.GetLength(1); x++)
+                map[y, x] = automataMap[y, x];
+    }
+
+    public void renderDungeon()
+    {
+
+        for (int i = 0; i < map.GetLength(0); i++)
         {
-            for (int j = 0; j < automataMap.GetLength(1); j++) {
+            for (int j = 0; j < map.GetLength(1); j++)
+            {
                 //if (!(i == 0 && j == 7))
                 {
                     GameObject tmp = null;
-                    if (automataMap[i, j] == 0)
+                    if (map[i, j] == 0)
                     {
                         tmp = GameObject.Instantiate(Resources.Load("Environment/Wall")) as GameObject;
                     }
-                    else
+                    else if (map[i, j] == 1)
                     {
                         tmp = GameObject.Instantiate(Resources.Load("Environment/Ground")) as GameObject;
+                    }
+                    else if (map[i, j] == 2)
+                    {
+                        tmp = GameObject.Instantiate(Resources.Load("Environment/Visible_Ground")) as GameObject;
+                    }
+                    else if (map[i, j] == 99)
+                    {
+                        tmp = GameObject.Instantiate(Resources.Load("Environment/Player")) as GameObject;
                     }
                     tmp.transform.Translate(j * 0.16f, i * 0.16f, 0);
                 }
             }
         }
-
-        map = automataMap;
     }
 
     private void fillTinyRooms(int minSize = 10)
@@ -353,7 +369,7 @@ public class DungeonGenerator : MonoBehaviour {
     }
 
 
-    private void printMatrix(int[,] matrix)
+    public static void printMatrix(int[,] matrix)
     {
         for(int i = 0; i < matrix.GetLength(0); i++)
         {

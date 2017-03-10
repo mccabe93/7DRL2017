@@ -13,7 +13,7 @@ public class ApplicationConstants : MonoBehaviour {
     public static int TILE_WIDTH = 32, TILE_HEIGHT = 32;
 
     // max dungeon size in tiles?
-    public static int DUNGEON_WIDTH = 64, DUNGEON_HEIGHT = 64;
+    public static int DUNGEON_WIDTH = 16, DUNGEON_HEIGHT = 16;
 
     public void Awake()
     {
