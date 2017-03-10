@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/DunGen/shadowcasting/shadowcasting.unity
+- path: Assets/Perspective/perspective_script_test.unity
   isLoaded: 1
   isActive: 1
