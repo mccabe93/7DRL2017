@@ -1,17 +1,29 @@
-﻿using System.Collections;
+/*
+*TODO
+*-Need to set x_LocationInDungeonGrid, y_LocationInDungeonGrid, x_TargetLocationInGrid, y_TargetLocationInGrid relative to this gameobject's position
+*
+*/
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AStar_Pathfind : MonoBehaviour
+public class unittest : MonoBehaviour
 {
     public GameObject target;
     public bool pathFound = false;
     Path discoveredPath = new Path();
+    public DungeonManager dungeonManager;
+    public DungeonManager.DungeonTile[,] dungeonGrid;
+    public int x_LocationInDungeonGrid;
+    public int y_LocationInDungeonGrid;
+    public int x_TargetLocationInGrid;
+    public int y_TargetLocationInGrid;
 
     // Use this for initialization
     void Start()
     {
-
+        dungeonGrid = GameObject.FindGameObjectWithTag("DungeonManager").GetComponent<DungeonManager>().WorldGrid;
     }
 
     // Update is called once per frame
@@ -19,17 +31,15 @@ public class AStar_Pathfind : MonoBehaviour
     {
         #region Testing Area Only
         //UNIT TESTING AREA
-        Vector2 start = new Vector2(0, 0);
-        Vector2 end = new Vector2(2, 4);
-        Path thePath = getPath(start, end);
+        //Vector2 start = new Vector2(0, 0);
+        //Vector2 end = new Vector2(2, 4);
+        //Path thePath = getPath(start, end);
         //END UNIT TESTING
         #endregion
 
         //Get the shortest path
-        Vector2 thisPos = new Vector2(gameObject.transform.position.x, gameObject.transform.position.y);    //position of this object
-        Vector2 targetPos = new Vector2(target.gameObject.transform.position.x, target.gameObject.transform.position.y); //position of target object
-        Path shortestPath = getPath(gameObject.transform.position, targetPos);  //Get the shortest path from position of this object, to target object
-
+        Path shortestPath = getPath(x_LocationInDungeonGrid, y_LocationInDungeonGrid, x_TargetLocationInGrid, y_TargetLocationInGrid);  //Get the shortest path from position of this object, to target object
+        
     }
 
 
@@ -37,13 +47,13 @@ public class AStar_Pathfind : MonoBehaviour
    * @param Vector2 startPosition, Vector2 targetPosition
    * @returns Path discoveredPath
    * @desc Finds best path from one Vector2 to another
-   * @status Tested
+   * @status Completed with Grid implementation. Untested
    */
-    public Path getPath(Vector2 startPos, Vector2 targetPos)
+    public Path getPath(int x_Start, int y_Start, int x_Target, int y_Target)
     {
         Path startingPath = new Path(true);
-        startingPath.nodes.Add(startPos);
-        List<Path> paths = getNodeMoves(startingPath, startPos, targetPos);
+        startingPath.nodes.Add(new Vector2(x_Start, y_Start));
+        List<Path> paths = getNodeMoves(startingPath, x_Start, y_Start, x_Target, y_Target);
 
 
         while (!pathFound)
@@ -55,7 +65,7 @@ public class AStar_Pathfind : MonoBehaviour
             {
                 if (pathFound) break;
                 //get node moves available for each path
-                List<Path> curPaths = getNodeMoves(paths[i], paths[i].nodes[paths[i].nodes.Count - 1], targetPos);
+                List<Path> curPaths = getNodeMoves(paths[i], (int)paths[i].nodes[paths[i].nodes.Count - 1].x, (int)paths[i].nodes[paths[i].nodes.Count - 1].y, x_Target, y_Target);
 
                 //If we have some paths, add them to updated paths
                 if (curPaths.Count != 0)
@@ -71,7 +81,7 @@ public class AStar_Pathfind : MonoBehaviour
             //set paths to updatedPaths and go again
             paths = updatedPaths;
         }
-
+        
         return discoveredPath;
     }
 
@@ -80,22 +90,22 @@ public class AStar_Pathfind : MonoBehaviour
    * @param Path currentPath, Vector2 startPos, Vector2 targetPos
    * @returns List<Path> List of still potential paths
    * @desc Gets all available node moves for a given node (up, right, down, left)
-   * @status Tested
+   * @status Completed with Grid implementation. Untested
    */
-    public List<Path> getNodeMoves(Path currentPath, Vector2 startPos, Vector2 targetPos)
+    public List<Path> getNodeMoves(Path currentPath, int x_CurrentDungeonSpot, int y_CurrentDungeonSpot, int x_TargetDungeonSpot, int y_TargetDungeonSpot)
     {
         List<Path> paths = new List<Path>();
 
         //see if position one position to the right is valid
-        if (isValidPosition(new Vector2(startPos.x + 1, startPos.y)))
+        if (isValidPosition(x_CurrentDungeonSpot, y_CurrentDungeonSpot))
         {
             Path tempPath = new Path(true);
             for (int p = 0; p < currentPath.nodes.Count; p++)
             {
                 tempPath.nodes.Add(currentPath.nodes[p]);
             }
-            tempPath.nodes.Add(new Vector2(startPos.x + 1, startPos.y));
-            if (targetPos == new Vector2(startPos.x + 1, startPos.y))
+            tempPath.nodes.Add(new Vector2(x_CurrentDungeonSpot + 1, y_CurrentDungeonSpot));
+            if (x_TargetDungeonSpot == (x_CurrentDungeonSpot + 1) && y_TargetDungeonSpot == y_CurrentDungeonSpot)
             {
                 tempPath.pathFound = true;    //if this is the target
                 discoveredPath = tempPath;
@@ -106,15 +116,15 @@ public class AStar_Pathfind : MonoBehaviour
         }
 
         //check up
-        if (isValidPosition(new Vector2(startPos.x, startPos.y + 1)))
+        if (isValidPosition(x_CurrentDungeonSpot, y_CurrentDungeonSpot + 1))
         {
             Path tempPath2 = new Path(true);
             for (int p = 0; p < currentPath.nodes.Count; p++)
             {
                 tempPath2.nodes.Add(currentPath.nodes[p]);
             }
-            tempPath2.nodes.Add(new Vector2(startPos.x, startPos.y + 1));
-            if (targetPos == new Vector2(startPos.x, startPos.y + 1))
+            tempPath2.nodes.Add(new Vector2(x_CurrentDungeonSpot, y_CurrentDungeonSpot + 1));
+            if (x_TargetDungeonSpot == x_CurrentDungeonSpot && y_TargetDungeonSpot == (y_CurrentDungeonSpot +1))
             {
                 tempPath2.pathFound = true;    //if this is the target
                 discoveredPath = tempPath2;
@@ -125,15 +135,15 @@ public class AStar_Pathfind : MonoBehaviour
         }
 
         //check down
-        if (isValidPosition(new Vector2(startPos.x, startPos.y - 1)))
+        if (isValidPosition(x_CurrentDungeonSpot, y_CurrentDungeonSpot -1))
         {
             Path tempPath3 = new Path(true);
             for (int p = 0; p < currentPath.nodes.Count; p++)
             {
                 tempPath3.nodes.Add(currentPath.nodes[p]);
             }
-            tempPath3.nodes.Add(new Vector2(startPos.x, startPos.y - 1));
-            if (targetPos == new Vector2(startPos.x, startPos.y - 1))
+            tempPath3.nodes.Add(new Vector2(x_CurrentDungeonSpot, y_CurrentDungeonSpot - 1));
+            if (x_TargetDungeonSpot == x_CurrentDungeonSpot && y_TargetDungeonSpot == (y_CurrentDungeonSpot - 1))
             {
                 tempPath3.pathFound = true;    //if this is the target
                 discoveredPath = tempPath3;
@@ -144,15 +154,15 @@ public class AStar_Pathfind : MonoBehaviour
         }
 
         //check left
-        if (isValidPosition(new Vector2(startPos.x - 1, startPos.y)))
+        if (isValidPosition(x_CurrentDungeonSpot - 1, y_CurrentDungeonSpot))
         {
             Path tempPath4 = new Path(true);
             for (int p = 0; p < currentPath.nodes.Count; p++)
             {
                 tempPath4.nodes.Add(currentPath.nodes[p]);
             }
-            tempPath4.nodes.Add(new Vector2(startPos.x - 1, startPos.y));
-            if (targetPos == new Vector2(startPos.x - 1, startPos.y))
+            tempPath4.nodes.Add(new Vector2(x_CurrentDungeonSpot - 1, y_CurrentDungeonSpot));
+            if (x_TargetDungeonSpot == (x_CurrentDungeonSpot-1) && y_TargetDungeonSpot == y_CurrentDungeonSpot)
             {
                 tempPath4.pathFound = true;    //if this is the target
                 discoveredPath = tempPath4;
@@ -167,17 +177,15 @@ public class AStar_Pathfind : MonoBehaviour
 
 
     /*
-   * @param Vector2 Position to check
+   * @param int x, int y
    * @returns bool Is it a valid position?
-   * @desc Checks to see if a position is valid by checking for a collider at the given spot (walls, objects, enemies, etc)
-   * @status Haven't tested with colliders
+   * @desc Checks to see if a position in dungeon grid has an actor
+   * @status Completed with Grid implementation. Untested
    */
-    public bool isValidPosition(Vector2 pos)
+    public bool isValidPosition(int x_PositionInGrid, int y_PositionInGrid)
     {
-        Vector2 spawnPos = pos; //(whatever position you want to check)
-        float radius = 1.0f; // (whatever radius you want to check)
 
-        if (Physics.CheckSphere(spawnPos, radius))
+        if (dungeonGrid[x_LocationInDungeonGrid, y_LocationInDungeonGrid].Actor != null)
         {
             //found something
             return false;
