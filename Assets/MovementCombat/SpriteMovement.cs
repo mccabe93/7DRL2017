@@ -1,4 +1,11 @@
-﻿using System.Collections;
+/*
+*TODO
+*-Need to set x_PositionInDungeonGrid and y_PositionInDungeonGrid (how to map player's world position relative to the game grid?)
+*-Need to add animation changes for which direction facing / moving
+*-Logic for actually conducting combat (taking hits, giving hits, manipulating hit points?)
+*/
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,10 +20,14 @@ public class SpriteMovement : MonoBehaviour {
     private Vector3 startPos;
     private Vector3 endPos;
     private bool toMove;
+    public DungeonManager.DungeonTile[,] dungeonMap;
+    public int x_PositionInDungeonGrid; //Need to set this somehow??
+    public int y_PositionInDungeonGrid; //Need to set this somehow??
 
     // Use this for initialization
     void Start ()
     {
+        dungeonMap = GameObject.FindGameObjectWithTag("DungeonManager").GetComponent<DungeonManager>().WorldGrid;
         currentDir = Direction.North;
         toMove = true;
         isAllowedToMove = true;
@@ -28,7 +39,7 @@ public class SpriteMovement : MonoBehaviour {
         //able to move by default unless specified otherwise
         toMove = true;
 
-        #region Movement handler
+        #region Movement handler - Implemented for grid. Just need coordinates in grid to test "Move" function
         input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
 
@@ -85,7 +96,7 @@ public class SpriteMovement : MonoBehaviour {
                     currentDir = Direction.North;
                     //North walking animation?
                 }
-                StartCoroutine(Move(transform));
+                StartCoroutine(Move(x_PositionInDungeonGrid, y_PositionInDungeonGrid, currentDir));
             }
             else    //If key just tapped, just perform animation / change sprite
             {
@@ -108,14 +119,7 @@ public class SpriteMovement : MonoBehaviour {
         }
         #endregion
 
-        #region Combat handler
-        GameObject combatanant = CheckForCombat(gameObject.transform);
-        if(combatanant != null)
-        {
-            //then we have some combat-ing to do
-            InitiateCombat(gameObject, combatanant);
-        }
-        #endregion
+        
 
     }
 
@@ -123,11 +127,13 @@ public class SpriteMovement : MonoBehaviour {
     * @param GameObject attacker who is 'attacking" (player), GameObject enemy who is "being attacked
     * @returns null
     * @desc Begins combat of two GameObjects
-    * @status Incomplete
+    * @status Not Started
     */
     public void InitiateCombat(GameObject attacker, GameObject enemy)
     {
-        //Initiate combat?
+        //Animation
+
+        //Health loss
 
     }
 
@@ -136,64 +142,94 @@ public class SpriteMovement : MonoBehaviour {
     * @param Transform 'entity' holding the transform (probably not necessary anymore)
     * @returns GameObject 'Combatanant"
     * @desc Checks for neearby (non-diagonal, 1 pixel away) enemies and returns their GameObject
-    * @status Completed / Untested.
+    * @status Complete with grid implementation. Untested. 
     */
-    public GameObject CheckForCombat(Transform entity)
+    public GameObject CheckForCombat(int xPositionInDungeonMap, int yPositionInDungeonMap)
     {
-
-        //raidus to check for colliders
-        float radius = 1.0f;
-
+        int x = xPositionInDungeonMap; 
+        int y = yPositionInDungeonMap;   
+        
         //check right
-        Vector2 rightPos = new Vector2(entity.position.x + 1, entity.position.y);
-        Collider[] colliders_Right = Physics.OverlapSphere(rightPos, radius);
-        if (colliders_Right.Length > 0) //If we found colliders to our right, check if it's an enemy
+        if(dungeonMap[x + 1, y].Actor != null)
         {
-            for (int i = 0; i < colliders_Right.Length; i++)
-            {
-                if (colliders_Right[i].gameObject.tag == "Enemy")
-                    return colliders_Right[i].gameObject as GameObject; //if we found a gameobject, return it 
-            }
+            return dungeonMap[x + 1, y].Actor;
         }
 
         //check left
-        Vector2 leftPos = new Vector2(entity.position.x - 1, entity.position.y);
-        Collider[] colliders_Left = Physics.OverlapSphere(leftPos, radius);
-        if(colliders_Left.Length > 0)   //If we found colliders to our right, check if it's an enemy
+        if (dungeonMap[x - 1, y].Actor != null)
         {
-            for (int i = 0; i < colliders_Left.Length; i++)
-            {
-                if (colliders_Left[i].gameObject.tag == "Enemy")
-                    return colliders_Left[i].gameObject as GameObject;  //if we found a gameobject, return it 
-            }
+            return dungeonMap[x - 1, y].Actor;
         }
 
         //check up
-        Vector2 upPos = new Vector2(entity.position.x, entity.position.y + 1);  //If we found colliders to our right, check if it's an enemy
-        Collider[] colliders_Up = Physics.OverlapSphere(upPos, radius);
-        if(colliders_Up.Length > 0)
+        if (dungeonMap[x, y + 1].Actor != null)
         {
-            for (int i = 0; i < colliders_Up.Length; i++)
-            {
-                if (colliders_Up[i].gameObject.tag == "Enemy")
-                    return colliders_Up[i].gameObject as GameObject;    //if we found a gameobject, return it 
-            }
+            return dungeonMap[x, y + 1].Actor;
         }
 
         //check down
-        Vector2 downPos = new Vector2(entity.position.x, entity.position.y - 1);
-        Collider[] colliders_Down = Physics.OverlapSphere(downPos, radius);
-        if(colliders_Down.Length > 0)
+        if (dungeonMap[x + 1, y - 1].Actor != null)
         {
-            for (int i = 0; i < colliders_Down.Length; i++)
-            {
-                if (colliders_Down[i].gameObject.tag == "Enemy")
-                    return colliders_Down[i].gameObject as GameObject;
-            }
+            return dungeonMap[x, y - 1].Actor;
         }
 
-        //return empty GameObject if none found
         return null;
+
+        #region Deprecated pre-grid code (pixels)
+        ////raidus to check for colliders
+        //float radius = 1.0f;
+
+        ////check right
+        //Vector2 rightPos = new Vector2(entity.position.x + 1, entity.position.y);
+        //Collider[] colliders_Right = Physics.OverlapSphere(rightPos, radius);
+        //if (colliders_Right.Length > 0) //If we found colliders to our right, check if it's an enemy
+        //{
+        //    for (int i = 0; i < colliders_Right.Length; i++)
+        //    {
+        //        if (colliders_Right[i].gameObject.tag == "Enemy")
+        //            return colliders_Right[i].gameObject as GameObject; //if we found a gameobject, return it 
+        //    }
+        //}
+
+        ////check left
+        //Vector2 leftPos = new Vector2(entity.position.x - 1, entity.position.y);
+        //Collider[] colliders_Left = Physics.OverlapSphere(leftPos, radius);
+        //if(colliders_Left.Length > 0)   //If we found colliders to our right, check if it's an enemy
+        //{
+        //    for (int i = 0; i < colliders_Left.Length; i++)
+        //    {
+        //        if (colliders_Left[i].gameObject.tag == "Enemy")
+        //            return colliders_Left[i].gameObject as GameObject;  //if we found a gameobject, return it 
+        //    }
+        //}
+
+        ////check up
+        //Vector2 upPos = new Vector2(entity.position.x, entity.position.y + 1);  //If we found colliders to our right, check if it's an enemy
+        //Collider[] colliders_Up = Physics.OverlapSphere(upPos, radius);
+        //if(colliders_Up.Length > 0)
+        //{
+        //    for (int i = 0; i < colliders_Up.Length; i++)
+        //    {
+        //        if (colliders_Up[i].gameObject.tag == "Enemy")
+        //            return colliders_Up[i].gameObject as GameObject;    //if we found a gameobject, return it 
+        //    }
+        //}
+
+        ////check down
+        //Vector2 downPos = new Vector2(entity.position.x, entity.position.y - 1);
+        //Collider[] colliders_Down = Physics.OverlapSphere(downPos, radius);
+        //if(colliders_Down.Length > 0)
+        //{
+        //    for (int i = 0; i < colliders_Down.Length; i++)
+        //    {
+        //        if (colliders_Down[i].gameObject.tag == "Enemy")
+        //            return colliders_Down[i].gameObject as GameObject;
+        //    }
+        //}
+
+        //return empty GameObject if none found
+        //return null;
+        #endregion
     }
 
 
@@ -201,29 +237,70 @@ public class SpriteMovement : MonoBehaviour {
     * @param Transform
     * @returns null/0
     * @desc Moves player via Lerp/Time.deltaTime
-    * @status Working
+    * @status Complete with grid implementation. Untested.
     */
-    public IEnumerator Move(Transform entity)
+    public IEnumerator Move(int xPositionInDungeonMap, int yPositionInDungeonMap, Direction dir)
     {
         isMoving = true;
-        startPos = entity.position;
+        DungeonManager.DungeonTile endTile;
+        DungeonManager.DungeonTile startTile;
+        startTile = dungeonMap[xPositionInDungeonMap, yPositionInDungeonMap];
+
+        startPos = dungeonMap[xPositionInDungeonMap, yPositionInDungeonMap].WorldPosition;
         t = 0;
-
-        endPos = new Vector3(startPos.x + System.Math.Sign(input.x), startPos.y + System.Math.Sign(input.y), startPos.z);
-
-        while (t < 1f)
+        switch (dir)
+        {
+            case Direction.North:
+                endTile = dungeonMap[xPositionInDungeonMap, yPositionInDungeonMap + 1];
+                endPos = dungeonMap[xPositionInDungeonMap, yPositionInDungeonMap + 1].WorldPosition;
+                break;
+            case Direction.East:
+                endTile = dungeonMap[xPositionInDungeonMap + 1, yPositionInDungeonMap];
+                endPos = dungeonMap[xPositionInDungeonMap + 1, yPositionInDungeonMap].WorldPosition;
+                break;
+            case Direction.South:
+                endTile = dungeonMap[xPositionInDungeonMap, yPositionInDungeonMap - 1];
+                endPos = dungeonMap[xPositionInDungeonMap, yPositionInDungeonMap - 1].WorldPosition;
+                break;
+            default:
+                endTile = dungeonMap[xPositionInDungeonMap - 1, yPositionInDungeonMap];
+                endPos = dungeonMap[xPositionInDungeonMap - 1, yPositionInDungeonMap].WorldPosition;
+                break;
+        }
+            
+        while(t < 1f)
         {
             t += Time.deltaTime * walkSpeed;
-            entity.position = Vector3.Lerp(startPos, endPos, t);
+            gameObject.transform.position = Vector3.Lerp(startPos, endPos, t);
             yield return null;
         }
 
+        startTile.Actor = null; //set old spot's actor as null
+        endTile.Actor = gameObject; //set new spot's actor as this gameobject
         isMoving = false;
         yield return 0;
+
+        #region Deprecated before grid implementation
+        //isMoving = true;
+        //startPos = entity.position;
+        //t = 0;
+
+        //endPos = new Vector3(startPos.x + System.Math.Sign(input.x), startPos.y + System.Math.Sign(input.y), startPos.z);
+
+        //while (t < 1f)
+        //{
+        //    t += Time.deltaTime * walkSpeed;
+        //    entity.position = Vector3.Lerp(startPos, endPos, t);
+        //    yield return null;
+        //}
+
+        //isMoving = false;
+        //yield return 0;
+        #endregion
     }
 }
 
-enum Direction
+public enum Direction
 {
     North,
     East,
