@@ -17,7 +17,7 @@ public class DungeonGenerator : MonoBehaviour {
     public Sprite ground;
 
     // to not devour enormouse amounts of memory, just build the cost grid after completion?
-    private int[,] costGrid;// = new int[ApplicationConstants.DUNGEON_HEIGHT][ApplicationConstants.DUNGEON_WIDTH];
+    public int[,] costGrid;// = new int[ApplicationConstants.DUNGEON_HEIGHT][ApplicationConstants.DUNGEON_WIDTH];
     private List<Vector2> floorTiles = new List<Vector2>();
     private int[,] automataMap = new int[ApplicationConstants.DUNGEON_HEIGHT,ApplicationConstants.DUNGEON_WIDTH];
     private int[,] previousAutomataMap = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
@@ -51,6 +51,7 @@ public class DungeonGenerator : MonoBehaviour {
         for (int y = 0; y < automataMap.GetLength(0); y++)
             for (int x = 0; x < automataMap.GetLength(1); x++)
                 map[y, x] = automataMap[y, x];
+        createCostGrid();
     }
 
     public void renderDungeon()
@@ -85,14 +86,35 @@ public class DungeonGenerator : MonoBehaviour {
         }
     }
 
+    public void createCostGrid()
+    {
+        costGrid = new int[ApplicationConstants.DUNGEON_WIDTH, ApplicationConstants.DUNGEON_HEIGHT];
+        for (int i = 0; i < map.GetLength(0); i++)
+        {
+            for (int j = 0; j < map.GetLength(1); j++)
+            {
+                switch(map[i,j])
+                {
+                    // a wall
+                    case 0:
+                        costGrid[i, j] = 10000;
+                        break;
+                    case 1:
+                        costGrid[i, j] = 0;
+                        break;
+                }
+            }
+        }
+    }
+
     public static GameObject tileFromId(int id)
     {
         switch(id)
         {
             case 0:
-                return GameObject.Instantiate(Resources.Load("Environment/iso/Wall")) as GameObject;
+                return GameObject.Instantiate(Resources.Load("Environment/Wall")) as GameObject;
             case 1:
-                return GameObject.Instantiate(Resources.Load("Environment/iso/Floor")) as GameObject;
+                return GameObject.Instantiate(Resources.Load("Environment/Floor")) as GameObject;
             case 2:
                 break;
         }

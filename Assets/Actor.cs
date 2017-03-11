@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Actor : MonoBehaviour {
     
-    private int x, y;
+    public int x, y;
 
 	// Use this for initialization
 	void Start () {
@@ -15,6 +15,14 @@ public class Actor : MonoBehaviour {
 	void Update () {
 		
 	}
+
+    public bool trySpawnAt(int x, int y)
+    {
+        if (moveToPosition(x, y) != 0)
+            return false;
+        return true;
+    }
+
     // -1 = error moving
     // 0 = moved
     // 1 = combat
@@ -24,7 +32,7 @@ public class Actor : MonoBehaviour {
             ny >= 0 && ny < ApplicationConstants.DUNGEON_HEIGHT)
         {
             var occupier = DungeonManager.WorldGrid[nx, ny].Actor;
-            if (occupier == null)
+            if (occupier == null && DungeonManager.WorldGrid[nx,ny].Cost < 10000)
             {
                 DungeonManager.moveActor(x, y, nx, ny);
                 x = nx;
@@ -37,26 +45,6 @@ public class Actor : MonoBehaviour {
             }
         }
         return -1;
-    }
-
-    public void playerControls()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            moveToPosition(x - 1, y);
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            moveToPosition(x + 1, y);
-        }
-        else if (Input.GetKeyDown(KeyCode.W))
-        {
-            moveToPosition(x, y + 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.S))
-        {
-            moveToPosition(x, y - 1);
-        }
     }
 
     public static GameObject actorFromId(int id)
