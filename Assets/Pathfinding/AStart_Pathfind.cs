@@ -23,7 +23,7 @@ public class unittest : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        dungeonGrid = GameObject.FindGameObjectWithTag("DungeonManager").GetComponent<DungeonManager>().WorldGrid;
+     //   dungeonGrid = GameObject.FindGameObjectWithTag("DungeonManager").GetComponent<DungeonManager>().WorldGrid;
     }
 
     // Update is called once per frame

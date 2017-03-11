@@ -6,38 +6,58 @@ public class PerspectiveMap : MonoBehaviour {
 
     DungeonGenerator dg = new DungeonGenerator();
 
-    double isoProejction = 1 / Mathf.Sqrt(6) * (ApplicationConstants.TILE_HEIGHT * Mathf.Cos(Mathf.Deg2Rad * 45f));
+    private static double isoProjection = 1 / Mathf.Sqrt(6) * (ApplicationConstants.TILE_WIDTH * 1/Mathf.Sqrt(2));
+
+    private static int halfTileWidth = ApplicationConstants.TILE_WIDTH / 2;
 
     // Use this for initialization
     void Start () {
-        dg.init();
-        renderDungeon();
+//        dg.init();
+//        renderDungeon();
+//        Debug.Log("iso projection = " + isoProjection);
 //        dg.renderDungeon();
         
     }
-    public void renderDungeon()
+
+    public static void renderDungeon(int[,] map)
     {
-        var map = dg.map;
+        /*
+        // small test map
+        var map = new int[2,4];
+        map[0,0] = 0;
+        map[0,1] = 1;
+        map[0,2] = 0;
+        map[0,3] = 1;
+        map[1, 0] = 0;
+        map[1, 1] = 1;
+        map[1, 2] = 0;
+        map[1, 3] = 1;
+        */
         for (int i = 0; i < map.GetLength(0); i++)
         {
-            for (int j = 0, di = 0; j < map.GetLength(1); j++, di++)
+            for (int j = 0; j < map.GetLength(1); j++)
             {
-                //if (!(i == 0 && j == 7))
+                float offset = (float)(i * isoProjection);
+                GameObject tmp = null;
+                if (map[i, j] == 0)
                 {
-                    GameObject tmp = null;
-                    if (map[i, j] == 0)
-                    {
-                        tmp = GameObject.Instantiate(Resources.Load("Environment/iso/Wall")) as GameObject;
-                    }
-                    else if (map[i, j] == 1)
-                    {
-                        tmp = GameObject.Instantiate(Resources.Load("Environment/iso/Floor")) as GameObject;
-                    }
-                    tmp.transform.Translate((j + i) * 54, (float)(di * isoProejction), 0);
-                    tmp.GetComponent<SpriteRenderer>().sortingOrder = -i;
+                    tmp = GameObject.Instantiate(Resources.Load("Environment/iso/Wall")) as GameObject;
                 }
+                else if (map[i, j] == 1)
+                {
+                    tmp = GameObject.Instantiate(Resources.Load("Environment/iso/Floor")) as GameObject;
+                }
+                    
+                tmp.transform.position = new Vector3(j * halfTileWidth + i * halfTileWidth, (float)((j * isoProjection) - offset), 0);
+                tmp.GetComponent<SpriteRenderer>().sortingOrder = i;
             }
         }
+    }
+
+    public static Vector3 renderPerspective(int x, int y)
+    {
+        float offset = (float)(y * isoProjection);
+        return new Vector3(x * halfTileWidth + y * halfTileWidth, (float)((x * isoProjection) - offset), 0);
     }
 
     // Update is called once per frame

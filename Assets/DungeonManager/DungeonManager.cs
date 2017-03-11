@@ -11,31 +11,96 @@ using UnityEngine;
 
 public class DungeonManager : MonoBehaviour {
 
-    public DungeonTile[,] WorldGrid;
+    public static DungeonTile[,] WorldGrid;
+
+    private DungeonGenerator dg;
+
+    private GameObject player;
+
+    public int spawnX = 13, spawnY = 0;
 
 	// Use this for initialization
 	void Start ()
     {
+        player = GameObject.Instantiate(Resources.Load("Actors/Player")) as GameObject;
+        dg = new DungeonGenerator();
+        dg.init();
         WorldGrid = new DungeonTile[ApplicationConstants.DUNGEON_WIDTH, ApplicationConstants.DUNGEON_HEIGHT];
         for (int i = 0; i < ApplicationConstants.DUNGEON_WIDTH; i++)
         {
             for (int j = 0; j < ApplicationConstants.DUNGEON_HEIGHT; j++)
             {
-                DungeonTile current_Tile = new DungeonTile();
-                current_Tile.DungeonPosition = new Vector2(i, j);   //DOES THIS NEED A MULTIPLIER?
-                current_Tile.Actor = getActor(current_Tile.DungeonPosition);    //See if any GameObjects are at this position, and assign actor if so
-                //current_Tile.WorldPosition = //NEED TO SET WORLD POSITION
-                //current_Tile.Cost = //NEED TO SET COST
-                WorldGrid[i, j] = current_Tile;
+                WorldGrid[i, j] = new DungeonTile(null, null, 0);
             }
         }
-	}
-	
-	// Update is called once per frame
-	void Update ()
+        player.GetComponent<Actor>().moveToPosition(spawnX, spawnY);
+        addActor(player, spawnX, spawnY);//player.GetComponent<SpriteMovement>().x_PositionInDungeonGrid, player.GetComponent<SpriteMovement>().y_PositionInDungeonGrid);
+        //        PerspectiveMap.renderDungeon(dg.map);
+        renderWorld();
+        drawActors();
+    }
+
+    public void renderWorld()
     {
-	    	
-	}
+        var map = dg.map;
+        for (int i = 0; i < ApplicationConstants.DUNGEON_WIDTH; i++)
+        {
+            for (int j = 0; j < ApplicationConstants.DUNGEON_HEIGHT; j++)
+            {
+                DungeonTile current_Tile = WorldGrid[i,j];
+                current_Tile.Tile = DungeonGenerator.tileFromId(map[i, j]);
+                current_Tile.Tile.transform.position = PerspectiveMap.renderPerspective(i, j);
+                current_Tile.Tile.GetComponent<SpriteRenderer>().sortingOrder = j;
+                WorldGrid[i, j] = current_Tile;
+
+            }
+        }
+    }
+
+    public void drawActors()
+    {
+        for (int i = 0; i < ApplicationConstants.DUNGEON_WIDTH; i++)
+        {
+            for (int j = 0; j < ApplicationConstants.DUNGEON_HEIGHT; j++)
+            {
+                if (WorldGrid[i, j].Actor != null)
+                {
+                    drawActorAtPosition(i, j);
+                }
+            }
+        }
+    }
+
+    void Update()
+    {
+        player.GetComponent<Actor>().playerControls();
+        drawActors();
+    }
+
+    public void drawActorAtPosition(int i, int j)
+    {
+        var actor = WorldGrid[i, j].Actor;
+        actor.transform.position = PerspectiveMap.renderPerspective(i, j);
+        actor.transform.position += actor.GetComponent<SpriteRenderer>().sprite.bounds.extents.y * Vector3.up;
+        actor.transform.position -= actor.GetComponent<SpriteRenderer>().sprite.bounds.extents.x / 2 * Vector3.right;
+        actor.GetComponent<SpriteRenderer>().sortingOrder = j+1;
+    }
+
+    public static void moveActor(int oldX, int oldY, int newX, int newY)
+    {
+        GameObject actor = WorldGrid[oldX, oldY].Actor;
+        WorldGrid[oldX, oldY].Actor = null;
+        WorldGrid[newX, newY].Actor = actor;
+        Debug.Log(newX + ", " + newY);
+    }
+
+    public void addActor(GameObject actor, int x, int y)
+    {
+        //actor.GetComponent<SpriteMovement>().MoveToPosition(x, y);
+        WorldGrid[x, y].Actor = actor;
+        Debug.Log(actor + " added to " + WorldGrid[x, y]);
+    }
+    
 
     /*
    * @param Vector2 position we are checking
@@ -43,38 +108,25 @@ public class DungeonManager : MonoBehaviour {
    * @desc Gets all GameObjects, then checks to see if any reside at the given position
    * @status Untested
    */
-    private GameObject getActor(Vector2 pos)
+    private GameObject getActor(int x, int y)
     {
-        GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
-        foreach (GameObject go in allObjects)
-        {
-            if (go.activeInHierarchy)
-            {
-                Vector2 toVector2 = new Vector2(go.gameObject.transform.position.x, go.gameObject.transform.position.y);
-                if (toVector2 == pos)   //Is this a valid check? Will GameObject's position be comparable to grid?
-                    return go;
-            }
-        }
-
-        return null;
+        return WorldGrid[x, y].Actor;
     }
 
 
     public class DungeonTile
     {
-        public Vector2 DungeonPosition { get; set; }
-        public Vector2 WorldPosition { get; set; }
+        public GameObject Tile;
         public GameObject Actor { get; set; }
         public int Cost { get; set; }
 
         public DungeonTile() { }
 
-        public DungeonTile(Vector2 dungeonPos, GameObject act, int cos, Vector2 worldPos)
+        public DungeonTile(GameObject tile, GameObject act, int cos)
         {
-            this.DungeonPosition = dungeonPos;
             this.Actor = act;
             this.Cost = cos;
-            this.WorldPosition = worldPos;
+            this.Tile = tile;
         }
     }
 }

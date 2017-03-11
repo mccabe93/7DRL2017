@@ -85,6 +85,20 @@ public class DungeonGenerator : MonoBehaviour {
         }
     }
 
+    public static GameObject tileFromId(int id)
+    {
+        switch(id)
+        {
+            case 0:
+                return GameObject.Instantiate(Resources.Load("Environment/iso/Wall")) as GameObject;
+            case 1:
+                return GameObject.Instantiate(Resources.Load("Environment/iso/Floor")) as GameObject;
+            case 2:
+                break;
+        }
+        return null;
+    }
+
     private void fillTinyRooms(int minSize = 10)
     {
         foreach (List<Vector2> room in rooms.ToArray())
