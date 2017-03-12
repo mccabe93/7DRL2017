@@ -81,10 +81,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Actor.cs" />
     <Compile Include="Assets\ApplicationConstants.cs" />
+    <Compile Include="Assets\CameraFollow.cs" />
     <Compile Include="Assets\DunGen\DungeonGenerator.cs" />
-    <Compile Include="Assets\Pathfinding\AStart_Pathfind.cs" />
+    <Compile Include="Assets\DungeonManager\DungeonManager.cs" />
+    <Compile Include="Assets\Enemy.cs" />
+    <Compile Include="Assets\Pathfinding\Pathfinder.cs" />
+    <Compile Include="Assets\PerspectiveMap.cs" />
+    <Compile Include="Assets\Player.cs" />
     <Compile Include="Assets\Shadowcasting.cs" />
+    <Compile Include="Assets\Utility.cs" />
     <Compile Include="Assets\testcontrols.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -31,17 +31,18 @@ public class Enemy : Actor {
         Pathfinder pf = new Pathfinder(x, y);
         pf.findNewPath(this.x, this.y);
         path = new Queue<Vector2i>();
-        foreach(Vector2i node in pf.path)
+        foreach (Vector2i node in pf.path)
         {
             path.Enqueue(node);
         }
-        Debug.Log("i made a path to the player!");
+        pf = null;
+        Debug.Log("Queue len: " + path.Count);
     }
 
     // Update is called once per frame
-    void Update ()
+    void Update()
     {
-        if (isInRangeOfPlayer() && (lastPlayerX != player.x && lastPlayerY != player.y))
+        if (isInRangeOfPlayer() && (lastPlayerX != player.x || lastPlayerY != player.y))
         {
             getPathToTarget(player.x, player.y);
             updatePlayerCoords();

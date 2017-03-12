@@ -44,6 +44,7 @@ public class Pathfinder {
         visited = new List<Vector2i>();
         path = new List<Vector2i>();
         findPath(x, y, abs);
+        Debug.Log("Path Len: " + path.Count);
     }
 
     public void findPath(int x, int y, bool abs = false)
@@ -54,11 +55,8 @@ public class Pathfinder {
             return;
         }
         // if absolute position is needed, we only stop when we're at the destination tile (may result in impossible path)
-        else
-        {
-            if (x == destinationX && y == destinationY)
-                return;
-        }
+        else if (x == destinationX && y == destinationY)
+            return;
         Vector2i leastCostVec = new Vector2i(-1, -1);
         int leastCost = int.MaxValue;
         for (int i = -1; i < 2; i++)
@@ -69,7 +67,7 @@ public class Pathfinder {
                 // if it's the same as the parent, out of bounds, or we have already visited the node then skip this motha
                 if ((i == 0 && j == 0) ||
                      x - i < 0 || x + i >= ApplicationConstants.DUNGEON_WIDTH || y - j < 0 || y + j >= ApplicationConstants.DUNGEON_HEIGHT ||
-                     visited.Contains(tmp) || (Mathf.Abs(i) + Mathf.Abs(j) >= 2))
+                     (Mathf.Abs(i) + Mathf.Abs(j) >= 2) || visited.Contains(tmp))
                 {
                     continue;
                 }
@@ -82,15 +80,18 @@ public class Pathfinder {
             }
         }
         path.Add(leastCostVec);
+        printPath();
         findPath(leastCostVec.x, leastCostVec.y, abs);
     }
 
     public void printPath()
     {
+        Debug.Log("PATH FOUND");
         foreach(Vector2i node in path)
         {
             Debug.Log(node.x + ", " + node.y);
         }
+        Debug.Log("END PATH FOUND");
     }
 	
 	// Update is called once per frame
