@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Actor : MonoBehaviour {
-    
-    public int x, y;
 
-	// Use this for initialization
-	void Start () {
+    public int x, y;
+    Vector3 destination = Vector3.up;
+
+    // Use this for initialization
+    void Start () {
 
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+
+    }
 
     public bool trySpawnAt(int x, int y)
     {
         if (moveToPosition(x, y) != 0)
+        {
             return false;
+        }
         return true;
     }
 

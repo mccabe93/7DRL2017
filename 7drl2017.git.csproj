@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.2f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -75,18 +77,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Actor.cs" />
+    <Compile Include="Assets\Actor\Actor.cs" />
+    <Compile Include="Assets\Actor\Enemy.cs" />
+    <Compile Include="Assets\Actor\Player.cs" />
     <Compile Include="Assets\ApplicationConstants.cs" />
-    <Compile Include="Assets\CameraFollow.cs" />
     <Compile Include="Assets\DunGen\DungeonGenerator.cs" />
     <Compile Include="Assets\DungeonManager\DungeonManager.cs" />
-    <Compile Include="Assets\Enemy.cs" />
     <Compile Include="Assets\Pathfinding\Pathfinder.cs" />
-    <Compile Include="Assets\PerspectiveMap.cs" />
-    <Compile Include="Assets\Player.cs" />
-    <Compile Include="Assets\Shadowcasting.cs" />
-    <Compile Include="Assets\Utility.cs" />
-    <Compile Include="Assets\testcontrols.cs" />
+    <Compile Include="Assets\Perspective\PerspectiveMap.cs" />
+    <Compile Include="Assets\Utility\CameraFollow.cs" />
+    <Compile Include="Assets\Utility\Shadowcasting.cs" />
+    <Compile Include="Assets\Utility\Utility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
