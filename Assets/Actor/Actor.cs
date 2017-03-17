@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Utility;
 
 public class Actor : MonoBehaviour {
-
+    
     public int x, y;
-    Vector3 destination = Vector3.up;
 
     // Use this for initialization
     void Start () {
@@ -14,7 +14,17 @@ public class Actor : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
+        /*
+        if(inMotion)
+        {
+            position = Vector3.Lerp(position, destination, Time.deltaTime);
+            if(position == destination) {
+                inMotion = false;
+                DungeonManager.moveActor(currentGridX, currentGridY, lastGridX, lastGridY);
+            }
+            Debug.Log("motioning");
+        }
+        */
     }
 
     public bool trySpawnAt(int x, int y)
@@ -37,7 +47,7 @@ public class Actor : MonoBehaviour {
             var occupier = DungeonManager.WorldGrid[nx, ny].Actor;
             if (occupier == null && DungeonManager.WorldGrid[nx,ny].Cost < 10000)
             {
-                DungeonManager.moveActor(x, y, nx, ny);
+                DungeonManager.moveActor(this, nx, ny);
                 x = nx;
                 y = ny;
                 return 0;

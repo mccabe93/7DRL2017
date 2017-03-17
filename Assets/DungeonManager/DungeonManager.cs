@@ -8,9 +8,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Utility;
 
 public class DungeonManager : MonoBehaviour
 {
+
+    protected struct Movement
+    {
+        public Actor actor;
+        public Vector3 position;
+        public Vector3 destination;
+        public Vector2i start;
+        public Vector2i end;
+        public float snapPositionTime;
+    }
 
     public static DungeonTile[,] WorldGrid;
     public bool spawnEnemy = false;
@@ -19,6 +30,8 @@ public class DungeonManager : MonoBehaviour
 
     private static GameObject player;
     private static GameObject mainCamera;
+
+    private static Movement mover;
 
     public int spawnX, spawnY;
 
@@ -39,20 +52,9 @@ public class DungeonManager : MonoBehaviour
             }
         }
         player.GetComponent<Player>().moveToPosition(spawnX, spawnY);
-        addActor(player, spawnX, spawnY);//player.GetComponent<SpriteMovement>().x_PositionInDungeonGrid, player.GetComponent<SpriteMovement>().y_PositionInDungeonGrid);
-        //        PerspectiveMap.renderDungeon(dg.map);
+        addActor(player, spawnX, spawnY);
         renderWorld();
         drawActors();
-        Pathfinder test = new Pathfinder(player.GetComponent<Actor>().x, player.GetComponent<Actor>().y);
-        try
-        {
-            test.findPath(13, 3);
-            test.printPath();
-        }
-        catch (System.Exception e)
-        {
-            Debug.Log("could not create a path to player");
-        }
         mainCamera.GetComponent<CameraFollow>().init();
     }
 
@@ -79,12 +81,44 @@ public class DungeonManager : MonoBehaviour
         {
             for (int j = 0; j < ApplicationConstants.DUNGEON_HEIGHT; j++)
             {
-                if (WorldGrid[i, j].Actor != null)
+                if (WorldGrid[i, j].Actor != null && !WorldGrid[i,j].Actor.Equals(mover.actor.gameObject))
                 {
                     drawActorAtPosition(i, j);
                 }
             }
         }
+        if (mover.actor != null)
+        {
+            if (!WorldGrid[mover.start.x, mover.start.y].moving)
+            {
+                mover.actor = null;
+                moveActor(mover.start, mover.end);
+                Debug.Log("mover done movin");
+            }
+            else
+            {
+                WorldGrid[mover.start.x, mover.start.y].moving = animateMoverTowardDestination() || mover.snapPositionTime <= Time.time;
+
+                GameObject actor = mover.actor.gameObject;
+                actor.GetComponent<SpriteRenderer>().sortingOrder = getSortingOrder(mover.end.x, mover.end.y);
+                actor.transform.position = mover.position;
+            }
+        }
+    }
+
+    public bool animateMoverTowardDestination()
+    {
+        if (mover.actor == null)
+            return false;
+
+        float moveTime = Time.deltaTime / 5.0f;
+
+        mover.position = Vector3.Lerp(mover.position, mover.destination, Time.deltaTime);
+
+        if (mover.position == mover.destination)
+            return false;
+
+        return true;
     }
 
     void Update()
@@ -96,23 +130,49 @@ public class DungeonManager : MonoBehaviour
     public void drawActorAtPosition(int i, int j)
     {
         var actor = WorldGrid[i, j].Actor;
-        actor.transform.position = PerspectiveMap.renderPerspective(i + 1, j);
+        actor.transform.position = PerspectiveMap.renderPerspective(i+1, j);
         actor.transform.position += actor.GetComponent<SpriteRenderer>().sprite.bounds.extents.y * Vector3.up;
         actor.transform.position -= actor.GetComponent<SpriteRenderer>().sprite.bounds.extents.x / 2 * Vector3.right;
-        actor.GetComponent<SpriteRenderer>().sortingOrder = j * ApplicationConstants.DUNGEON_WIDTH - i + 1;
+        actor.GetComponent<SpriteRenderer>().sortingOrder = getSortingOrder(i, j);
     }
 
-    public static void moveActor(int oldX, int oldY, int newX, int newY)
+    public int getSortingOrder(int i, int j)
+    {
+        return j * ApplicationConstants.DUNGEON_WIDTH - i + 1; 
+    }
+
+    public static void moveActor(Actor actor, int dX, int dY)
+    {
+        mover.actor = actor;
+        // grid x and y
+        mover.start = new Vector2i(actor.x, actor.y);
+        mover.end = new Vector2i(dX, dY);
+
+        // drawn x and y
+        mover.position = PerspectiveMap.renderPerspective(actor.x+1, actor.y);
+        mover.destination = PerspectiveMap.renderPerspective(dX, dY);
+
+        mover.snapPositionTime = Time.time + 0.4f;
+
+        WorldGrid[actor.x, actor.y].moving = true;
+    }
+
+    public static void moveActor(Vector2i start, Vector2i end)
     {
         mainCamera.GetComponent<CameraFollow>().updateCamera();
-        GameObject actor = WorldGrid[oldX, oldY].Actor;
-        WorldGrid[oldX, oldY].Actor = null;
-        WorldGrid[newX, newY].Actor = actor;
-        Debug.Log(newX + ", " + newY);
+        GameObject actor = WorldGrid[start.x, start.y].Actor;
+        WorldGrid[start.x, start.y].Actor = null;
+        WorldGrid[end.x, end.y].Actor = actor;
+//        Debug.Log(newX + ", " + newY);
         if (actor != null && actor.tag.Equals("Player"))
         {
 //            enemy.GetComponent<Enemy>().canMove = true;
         }
+    }
+
+    public static Vector3 getDestination(int x, int y)
+    {
+        return PerspectiveMap.renderPerspective(x, y);
     }
 
     public void addActor(GameObject actor, int x, int y)
@@ -140,6 +200,7 @@ public class DungeonManager : MonoBehaviour
         public GameObject Tile;
         public GameObject Actor { get; set; }
         public int Cost { get; set; }
+        public bool moving = false;
 
         public DungeonTile() { }
 

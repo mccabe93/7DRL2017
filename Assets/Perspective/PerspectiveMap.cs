@@ -6,9 +6,9 @@ public class PerspectiveMap : MonoBehaviour {
 
     DungeonGenerator dg = new DungeonGenerator();
 
-    private static double isoProjection = 1 / Mathf.Sqrt(6) * (ApplicationConstants.TILE_WIDTH * 1/Mathf.Sqrt(2));
+    private static double isoProjection = 1 / Mathf.Sqrt(6) * ((ApplicationConstants.TILE_WIDTH) * 1/Mathf.Sqrt(2));
 
-    private static int halfTileWidth = ApplicationConstants.TILE_WIDTH / 2;
+    private static int halfTileWidth = (ApplicationConstants.TILE_WIDTH) / 2;
 
     // Use this for initialization
     void Start () {
