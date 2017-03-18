@@ -20,6 +20,7 @@ public class DungeonManager : MonoBehaviour
         public Vector3 destination;
         public Vector2i start;
         public Vector2i end;
+        public int sortingOrder;
         public float snapPositionTime;
     }
 
@@ -100,7 +101,7 @@ public class DungeonManager : MonoBehaviour
                 WorldGrid[mover.start.x, mover.start.y].moving = animateMoverTowardDestination() || mover.snapPositionTime <= Time.time;
 
                 GameObject actor = mover.actor.gameObject;
-                actor.GetComponent<SpriteRenderer>().sortingOrder = getSortingOrder(mover.end.x, mover.end.y);
+
                 actor.transform.position = mover.position;
             }
         }
@@ -136,9 +137,15 @@ public class DungeonManager : MonoBehaviour
         actor.GetComponent<SpriteRenderer>().sortingOrder = getSortingOrder(i, j);
     }
 
-    public int getSortingOrder(int i, int j)
+    public static Vector3 getCenteredActorPosition(GameObject actor, Vector3 currentPosition)
     {
-        return j * ApplicationConstants.DUNGEON_WIDTH - i + 1; 
+        Vector3 spriteExtents = actor.GetComponent<SpriteRenderer>().sprite.bounds.extents;
+        return new Vector3(currentPosition.x - spriteExtents.x / 2, currentPosition.y + spriteExtents.y);
+    }
+
+    public static int getSortingOrder(int i, int j)
+    {
+        return (j * ApplicationConstants.DUNGEON_WIDTH - i) + 1; 
     }
 
     public static void moveActor(Actor actor, int dX, int dY)
@@ -149,10 +156,14 @@ public class DungeonManager : MonoBehaviour
         mover.end = new Vector2i(dX, dY);
 
         // drawn x and y
-        mover.position = PerspectiveMap.renderPerspective(actor.x+1, actor.y);
-        mover.destination = PerspectiveMap.renderPerspective(dX, dY);
+        mover.position = getCenteredActorPosition(actor.gameObject, PerspectiveMap.renderPerspective(actor.x+1, actor.y));
+        mover.destination = getCenteredActorPosition(actor.gameObject, PerspectiveMap.renderPerspective(dX+1, dY));
 
         mover.snapPositionTime = Time.time + 0.4f;
+
+        mover.sortingOrder = Mathf.Max(getSortingOrder(mover.start.x, mover.start.y), getSortingOrder(mover.end.x, mover.end.y));
+
+        mover.actor.gameObject.GetComponent<SpriteRenderer>().sortingOrder = mover.sortingOrder;
 
         WorldGrid[actor.x, actor.y].moving = true;
     }

@@ -13,6 +13,16 @@ namespace Utility
             this.x = x;
             this.y = y;
         }
+        public static Vector2i Max(Vector2i a, Vector2i b)
+        {
+            if (Magnitude(a) > Magnitude(b))
+                return a;
+            return b;
+        } 
+        public static int Magnitude(Vector2i a)
+        {
+            return (a.x * a.x) + (a.y * a.y);
+        }
     }
     public struct Vector3i
     {
