@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Utility;
 
 public class DungeonGenerator : MonoBehaviour {
 
@@ -18,24 +19,29 @@ public class DungeonGenerator : MonoBehaviour {
 
     // to not devour enormouse amounts of memory, just build the cost grid after completion?
     public int[,] costGrid;// = new int[ApplicationConstants.DUNGEON_HEIGHT][ApplicationConstants.DUNGEON_WIDTH];
-    private List<Vector2> floorTiles = new List<Vector2>();
+    private List<Vector2i> floorTiles = new List<Vector2i>();
     private int[,] automataMap = new int[ApplicationConstants.DUNGEON_HEIGHT,ApplicationConstants.DUNGEON_WIDTH];
     private int[,] previousAutomataMap = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
 
-    private List<List<Vector2>> rooms = new List<List<Vector2>>();
-    private List<Vector2> roomCenters = new List<Vector2>();
+    private List<List<Vector2i>> rooms = new List<List<Vector2i>>();
+    private List<Vector2i> roomCenters = new List<Vector2i>();
 
-    private Dictionary<Vector2, List<string>> tileContents = new Dictionary<Vector2, List<string>>();
+    private Dictionary<Vector2i, List<string>> tileContents = new Dictionary<Vector2i, List<string>>();
 
     private void Start()
     {
-   //     init();
+        //     init();
+    }
+
+    public Vector2i getSpawnableTile()
+    {
+        return roomCenters[0];
     }
 
     // Use this for initialization
-    public void init() {
+    public void init(int seed = 420) {
+        Random.InitState(seed);
         getAutomataMatrix();
-        Random.seed = 420;
         floodFillMap();
         fillTinyRooms();
         getRoomCenters();
@@ -123,11 +129,11 @@ public class DungeonGenerator : MonoBehaviour {
 
     private void fillTinyRooms(int minSize = 10)
     {
-        foreach (List<Vector2> room in rooms.ToArray())
+        foreach (List<Vector2i> room in rooms.ToArray())
         {
             if (room.Count <= minSize)
             {
-                foreach(Vector2 tile in room)
+                foreach(Vector2i tile in room)
                 {
                     automataMap[(int)tile.y, (int)tile.x] = 0;
                 }
@@ -147,14 +153,14 @@ public class DungeonGenerator : MonoBehaviour {
     // then take their average and you have the center of a room!
     private void getRoomCenters()
     {
-        foreach (List<Vector2> room in rooms.ToArray())
+        foreach (List<Vector2i> room in rooms.ToArray())
         {
             int smallestX = (int)room[0].x,
                 largestX = (int)room[0].x,
                 smallestY = (int)room[0].y,
                 largestY = (int)room[0].y;
 
-            foreach (Vector2 tile in room)
+            foreach (Vector2i tile in room)
             {
                 if (tile.x < smallestX)
                     smallestX = (int)tile.x;
@@ -168,14 +174,14 @@ public class DungeonGenerator : MonoBehaviour {
 
             int centerX = (smallestX + largestX) / 2,
                 centerY = (smallestY + largestY) / 2;
-            roomCenters.Add(new Vector2(centerX, centerY));
+            roomCenters.Add(new Vector2i(centerX, centerY));
         }
     }
 
     // finds the closest room and returns its index
     private int findClosestRoom(int room, List<int> ignoreRooms)
     {
-        Vector2 sourceRoomCenter = roomCenters[room];
+        Vector2i sourceRoomCenter = roomCenters[room];
         float smallestDistance = float.MaxValue;
         int index = 0;
 
@@ -183,8 +189,8 @@ public class DungeonGenerator : MonoBehaviour {
         {
             if (i == room || ignoreRooms.Contains(i))
                 continue;
-            Vector2 curRoomCenter = roomCenters[i];
-            float curDist = Vector2.Distance(sourceRoomCenter, curRoomCenter);
+            Vector2i curRoomCenter = roomCenters[i];
+            float curDist = Vector2i.Distance(sourceRoomCenter, curRoomCenter);
             if (curDist < smallestDistance)
             {
                 smallestDistance = curDist;
@@ -219,7 +225,7 @@ public class DungeonGenerator : MonoBehaviour {
 
         for (int i = 0; i < rooms.Count; i++)
         {
-            //List<Vector2> room = rooms[i];
+            //List<Vector2i> room = rooms[i];
             //bool roomFound = false;
 
             // find the closest room that isn't already connected
@@ -233,8 +239,8 @@ public class DungeonGenerator : MonoBehaviour {
 
             // select a random tile to act as the door
             // this should be
-            Vector2 startTile = roomCenters[i];
-            Vector2 endTile = roomCenters[targetRoom];
+            Vector2i startTile = roomCenters[i];
+            Vector2i endTile = roomCenters[targetRoom];
             carveCorridor(startTile, endTile);
         }
         /*
@@ -249,7 +255,7 @@ public class DungeonGenerator : MonoBehaviour {
     }
 
     // use 'dumb' pathfinding to connect rooms
-    private void carveCorridor(Vector2 start, Vector2 target)
+    private void carveCorridor(Vector2i start, Vector2i target)
     {
         float currentX = start.x, currentY = start.y;
         while(currentX != target.x)
@@ -284,17 +290,17 @@ public class DungeonGenerator : MonoBehaviour {
     private void floodFillMap()
     {
         checkedCells = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
-        foreach(Vector2 floor in floorTiles)
+        foreach(Vector2i floor in floorTiles)
         {
             if(checkedCells[(int)floor.y, (int)floor.x] == 0)
             {
-                List<Vector2> room = new List<Vector2>();
+                List<Vector2i> room = new List<Vector2i>();
                 floodFill((int)floor.x, (int)floor.y, room);
                 rooms.Add(room);
             }
         }
     }
-    private int floodFill(int x, int y, List<Vector2> room)
+    private int floodFill(int x, int y, List<Vector2i> room)
     {
 //        Debug.Log(x + ", " + y);
         // if the value is a wall, return
@@ -305,7 +311,7 @@ public class DungeonGenerator : MonoBehaviour {
         }
         int size = 0;
         checkedCells[y, x] = 1;
-        room.Add(new Vector2(x, y));
+        room.Add(new Vector2i(x, y));
         if(x > 0)
             size += floodFill(x - 1, y, room);
         if(x < ApplicationConstants.DUNGEON_WIDTH-1)
@@ -322,7 +328,6 @@ public class DungeonGenerator : MonoBehaviour {
 
     private int[,] getAutomataMatrix()
     {
-        Random rng = new Random();
         // initialize our matrix 
         for(int y = 0; y < ApplicationConstants.DUNGEON_HEIGHT; y++)
         {
@@ -397,7 +402,7 @@ public class DungeonGenerator : MonoBehaviour {
                 }
                 if(automataMap[y, x] == 1)
                 {
-                    floorTiles.Add(new Vector2(x, y));
+                    floorTiles.Add(new Vector2i(x, y));
                 }
             }
         }

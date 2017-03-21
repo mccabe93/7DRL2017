@@ -83,6 +83,7 @@
     <Compile Include="Assets\ApplicationConstants.cs" />
     <Compile Include="Assets\DunGen\DungeonGenerator.cs" />
     <Compile Include="Assets\DungeonManager\DungeonManager.cs" />
+    <Compile Include="Assets\Pathfinding\AStar_Pathfinder.cs" />
     <Compile Include="Assets\Pathfinding\Pathfinder.cs" />
     <Compile Include="Assets\Perspective\PerspectiveMap.cs" />
     <Compile Include="Assets\Utility\CameraFollow.cs" />

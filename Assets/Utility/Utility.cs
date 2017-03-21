@@ -8,20 +8,30 @@ namespace Utility
     {
         public int x;
         public int y;
+        public static Vector2i Zero = new Vector2i(0, 0);
         public Vector2i(int x, int y)
         {
             this.x = x;
             this.y = y;
+        }
+        public Vector2i(Vector2 uvector)
+        {
+            this.x = (int)uvector.x;
+            this.y = (int)uvector.y;
         }
         public static Vector2i Max(Vector2i a, Vector2i b)
         {
             if (Magnitude(a) > Magnitude(b))
                 return a;
             return b;
-        } 
+        }
         public static int Magnitude(Vector2i a)
         {
             return (a.x * a.x) + (a.y * a.y);
+        }
+        public static float Distance(Vector2i a, Vector2i b)
+        {
+            return Mathf.Sqrt((a.x * a.x - b.x * b.x) + (a.y * a.y - b.y * b.y));
         }
     }
     public struct Vector3i

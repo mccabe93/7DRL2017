@@ -4,27 +4,45 @@ using UnityEngine;
 using Utility;
 
 public class Actor : MonoBehaviour {
-    
     public int x, y;
+    public Animator animator;
+    public string currentAnimation = "idle_left";
 
     // Use this for initialization
     void Start () {
-
+        animator.Play(currentAnimation);
 	}
 	
 	// Update is called once per frame
 	void Update () {
+        //       Debug.Log("actor playing anim " + currentAnimation);
         /*
         if(inMotion)
         {
             position = Vector3.Lerp(position, destination, Time.deltaTime);
             if(position == destination) {
                 inMotion = false;
-                DungeonManager.moveActor(currentGridX, currentGridY, lastGridX, lastGridY);
+                GameManager.moveActor(currentGridX, currentGridY, lastGridX, lastGridY);
             }
             Debug.Log("motioning");
         }
         */
+    }
+
+    bool AnimatorIsPlaying()
+    {
+        return animator.GetCurrentAnimatorStateInfo(0).length >
+               animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+    }
+
+    public void returnToIdle()
+    {
+        animator.Play("idle_left");
+    }
+
+    public void setCurrentAnimation(string anim)
+    {
+        currentAnimation = anim;
     }
 
     public bool trySpawnAt(int x, int y)
@@ -47,10 +65,13 @@ public class Actor : MonoBehaviour {
             var occupier = DungeonManager.WorldGrid[nx, ny].Actor;
             if (occupier == null && DungeonManager.WorldGrid[nx,ny].Cost < 10000)
             {
-                DungeonManager.moveActor(this, nx, ny);
-                x = nx;
-                y = ny;
-                return 0;
+                if (DungeonManager.moveActor(this, nx, ny))
+                {
+                    x = nx;
+                    y = ny;
+                    animator.Play("run_left");
+                    return 0;
+                }
             }
             else if(occupier != null)
             {

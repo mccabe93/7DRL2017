@@ -1,6 +1,6 @@
 ﻿/*
 *TODO
-*-Add "DungeonManager" tag to whatever gameobject this is attached to
+*-Add "GameManager" tag to whatever gameobject this is attached to
 *-Add WorldCoordinate calculation when building the grid
 *-Update logic for keeping this grid up to date as the game changes?
 */
@@ -27,23 +27,19 @@ public class DungeonManager : MonoBehaviour
     public static DungeonTile[,] WorldGrid;
     public bool spawnEnemy = false;
 
-    private DungeonGenerator dg;
+    private DungeonGenerator dg = new DungeonGenerator();
 
     private static GameObject player;
     private static GameObject mainCamera;
 
     private static Movement mover;
 
-    public int spawnX, spawnY;
-
     // Use this for initialization
     void Start()
     {
+        dg.init(Random.Range(0,5));
         mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
         player = GameObject.Instantiate(Resources.Load("Actors/Player")) as GameObject;
-        dg = new DungeonGenerator();
-        dg.init();
-        Pathfinder.environmentMap = dg.costGrid;
         WorldGrid = new DungeonTile[ApplicationConstants.DUNGEON_WIDTH, ApplicationConstants.DUNGEON_HEIGHT];
         for (int i = 0; i < ApplicationConstants.DUNGEON_WIDTH; i++)
         {
@@ -52,8 +48,8 @@ public class DungeonManager : MonoBehaviour
                 WorldGrid[i, j] = new DungeonTile(null, null, dg.costGrid[i, j]);
             }
         }
-        player.GetComponent<Player>().moveToPosition(spawnX, spawnY);
-        addActor(player, spawnX, spawnY);
+        Vector2i spawn = dg.getSpawnableTile();
+        addActor(player, spawn.y, spawn.x);
         renderWorld();
         drawActors();
         mainCamera.GetComponent<CameraFollow>().init();
@@ -82,7 +78,8 @@ public class DungeonManager : MonoBehaviour
         {
             for (int j = 0; j < ApplicationConstants.DUNGEON_HEIGHT; j++)
             {
-                if (WorldGrid[i, j].Actor != null && !WorldGrid[i,j].Actor.Equals(mover.actor.gameObject))
+                if (WorldGrid[i, j].Actor != null && ((mover.actor != null && !WorldGrid[i, j].Actor.Equals(mover.actor.gameObject)) 
+                    || mover.actor == null))
                 {
                     drawActorAtPosition(i, j);
                 }
@@ -92,13 +89,14 @@ public class DungeonManager : MonoBehaviour
         {
             if (!WorldGrid[mover.start.x, mover.start.y].moving)
             {
-                mover.actor = null;
-                moveActor(mover.start, mover.end);
                 Debug.Log("mover done movin");
+                moveActor(mover.start, mover.end);
+                mover.actor.returnToIdle();
+                mover.actor = null;
             }
             else
             {
-                WorldGrid[mover.start.x, mover.start.y].moving = animateMoverTowardDestination() || mover.snapPositionTime <= Time.time;
+                WorldGrid[mover.start.x, mover.start.y].moving = animateMoverTowardDestination();// || mover.snapPositionTime <= Time.time;
 
                 GameObject actor = mover.actor.gameObject;
 
@@ -112,18 +110,24 @@ public class DungeonManager : MonoBehaviour
         if (mover.actor == null)
             return false;
 
-        float moveTime = Time.deltaTime / 5.0f;
+        if (Vector3.Distance(mover.position, mover.destination) >= 3f)
+        {
+            mover.position = Vector3.Lerp(mover.position, mover.destination, Time.deltaTime * 10f);
 
-        mover.position = Vector3.Lerp(mover.position, mover.destination, Time.deltaTime);
-
-        if (mover.position == mover.destination)
+        }
+        else
+        {
+            Debug.Log("mover should be done now");
+            mover.position = mover.destination;
             return false;
+        }
 
         return true;
     }
 
     void Update()
     {
+        mainCamera.GetComponent<CameraFollow>().updateCamera();
         player.GetComponent<Player>().playerControls();
         drawActors();
     }
@@ -131,7 +135,7 @@ public class DungeonManager : MonoBehaviour
     public void drawActorAtPosition(int i, int j)
     {
         var actor = WorldGrid[i, j].Actor;
-        actor.transform.position = PerspectiveMap.renderPerspective(i+1, j);
+        actor.transform.position = PerspectiveMap.renderPerspective(i + 1, j);
         actor.transform.position += actor.GetComponent<SpriteRenderer>().sprite.bounds.extents.y * Vector3.up;
         actor.transform.position -= actor.GetComponent<SpriteRenderer>().sprite.bounds.extents.x / 2 * Vector3.right;
         actor.GetComponent<SpriteRenderer>().sortingOrder = getSortingOrder(i, j);
@@ -145,19 +149,26 @@ public class DungeonManager : MonoBehaviour
 
     public static int getSortingOrder(int i, int j)
     {
-        return (j * ApplicationConstants.DUNGEON_WIDTH - i) + 1; 
+        return (j * ApplicationConstants.DUNGEON_WIDTH - i) + 1;
     }
 
-    public static void moveActor(Actor actor, int dX, int dY)
+    public static bool moveActor(Actor actor, int dX, int dY)
     {
+        if (mover.actor != null)
+        {
+            Debug.Log("moving too fast");
+            return false;
+        }
+
         mover.actor = actor;
+
         // grid x and y
         mover.start = new Vector2i(actor.x, actor.y);
         mover.end = new Vector2i(dX, dY);
 
         // drawn x and y
-        mover.position = getCenteredActorPosition(actor.gameObject, PerspectiveMap.renderPerspective(actor.x+1, actor.y));
-        mover.destination = getCenteredActorPosition(actor.gameObject, PerspectiveMap.renderPerspective(dX+1, dY));
+        mover.position = getCenteredActorPosition(actor.gameObject, PerspectiveMap.renderPerspective(actor.x + 1, actor.y));
+        mover.destination = getCenteredActorPosition(actor.gameObject, PerspectiveMap.renderPerspective(dX + 1, dY));
 
         mover.snapPositionTime = Time.time + 0.4f;
 
@@ -166,18 +177,19 @@ public class DungeonManager : MonoBehaviour
         mover.actor.gameObject.GetComponent<SpriteRenderer>().sortingOrder = mover.sortingOrder;
 
         WorldGrid[actor.x, actor.y].moving = true;
+
+        return true;
     }
 
     public static void moveActor(Vector2i start, Vector2i end)
     {
-        mainCamera.GetComponent<CameraFollow>().updateCamera();
         GameObject actor = WorldGrid[start.x, start.y].Actor;
         WorldGrid[start.x, start.y].Actor = null;
         WorldGrid[end.x, end.y].Actor = actor;
-//        Debug.Log(newX + ", " + newY);
+        //        Debug.Log(newX + ", " + newY);
         if (actor != null && actor.tag.Equals("Player"))
         {
-//            enemy.GetComponent<Enemy>().canMove = true;
+            //            enemy.GetComponent<Enemy>().canMove = true;
         }
     }
 
@@ -190,7 +202,9 @@ public class DungeonManager : MonoBehaviour
     {
         //actor.GetComponent<SpriteMovement>().MoveToPosition(x, y);
         WorldGrid[x, y].Actor = actor;
-        Debug.Log(actor + " added to " + WorldGrid[x, y]);
+        actor.GetComponent<Actor>().x = x;
+        actor.GetComponent<Actor>().y = y;
+        drawActors();
     }
 
 

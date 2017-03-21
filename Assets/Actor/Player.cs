@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : Actor {
-
-	// Use this for initialization
-	void Start () {
-		
-	}
+    
 
     public void playerControls()
     {
@@ -29,7 +25,8 @@ public class Player : Actor {
         }
         else if(Input.GetKeyDown(KeyCode.Space))
         {
-            moveToPosition(x, y);
+            //moveToPosition(x, y);
+            animator.Play("attack_left");
         }
         /*
         // octodirectional controls
