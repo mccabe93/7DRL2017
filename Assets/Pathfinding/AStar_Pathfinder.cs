@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -63,27 +63,36 @@ public class AStar_Pathfinder : MonoBehaviour {
     */
     public List<Node> buildPath(Node start, Node end)
     {
-        int savior = 0; //This is only here so don't get in endless loop during testing and freeze up Unity
+        if(start.Position == end.Position)
+        {
+            inProgressPath = new List<Node>();
+            return inProgressPath;
+        }
+            
+
         Node cur_Node = start;
+        
         while (!pathFound)
         {
             Node bestNeigh = getBestNeighbor(inProgressPath, cur_Node, start.Position, end.Position);
-            if(isInPathAlready(inProgressPath, bestNeigh))
+            
+            if(inProgressPath.Count > 0 && isInPathAlready(inProgressPath, bestNeigh) && !pathFound)
             {
                 inProgressPath = reducePathToPreviousPoint(inProgressPath, bestNeigh);
                 cur_Node.IsAvailable = false;
             }
-            else
+            else if (!pathFound)
             {
                 inProgressPath.Add(bestNeigh);
             }
             
             previousNode = cur_Node;
             cur_Node = bestNeigh;
-            savior++;
-            if (savior == 30)
-                pathFound = true;
+         
         }
+
+        if(inProgressPath.Count == 1 && inProgressPath[0] == start)
+            inProgressPath = new List<Node>();
 
         return inProgressPath;
     }
@@ -153,7 +162,7 @@ public class AStar_Pathfinder : MonoBehaviour {
         Node bestNeighbor = new Node();
         
         //top - If top is in bounds and available
-        if ((curPos.y > 0) && nodeGrid[(int)curPos.x, (int)curPos.y - 1].IsAvailable)
+        if ((curPos.y > 0) && nodeGrid[(int)curPos.x, (int)curPos.y - 1].IsAvailable || nodeGrid[(int)curPos.x, (int)curPos.y - 1].Position == endPos)
         {
             Vector2 tempTop = new Vector2((int)curPos.x, (int)curPos.y - 1);
             nodeGrid[(int)tempTop.x, (int)tempTop.y].Cost_ToStart = getDistance(startPos, tempTop);
@@ -167,7 +176,7 @@ public class AStar_Pathfinder : MonoBehaviour {
         }
 
         //right - If right is in bounds and available
-        if ((curPos.x < ApplicationConstants.DUNGEON_WIDTH - 1) && nodeGrid[(int)curPos.x + 1, (int)curPos.y].IsAvailable)
+        if ((curPos.x < ApplicationConstants.DUNGEON_WIDTH - 1) && nodeGrid[(int)curPos.x + 1, (int)curPos.y].IsAvailable || nodeGrid[(int)curPos.x + 1, (int)curPos.y].Position == endPos)
         {
             Vector2 tempRight = new Vector2((int)curPos.x + 1, (int)curPos.y);
             nodeGrid[(int)tempRight.x, (int)tempRight.y].Cost_ToStart = getDistance(startPos, tempRight);
@@ -181,7 +190,7 @@ public class AStar_Pathfinder : MonoBehaviour {
         }
 
         //bottom- If bottom is in bounds and available
-        if ((curPos.y < ApplicationConstants.DUNGEON_HEIGHT - 1) && nodeGrid[(int)curPos.x, (int)curPos.y + 1].IsAvailable)
+        if ((curPos.y < ApplicationConstants.DUNGEON_HEIGHT - 1) && nodeGrid[(int)curPos.x, (int)curPos.y + 1].IsAvailable || nodeGrid[(int)curPos.x, (int)curPos.y + 1].Position == endPos)
         {
             Vector2 tempBottom = new Vector2((int)curPos.x, (int)curPos.y+1);
             nodeGrid[(int)tempBottom.x, (int)tempBottom.y].Cost_ToStart = getDistance(startPos, tempBottom);
@@ -195,7 +204,7 @@ public class AStar_Pathfinder : MonoBehaviour {
         }
 
         //left- If left is in bounds and available
-        if ((curPos.x > 0) && nodeGrid[(int)curPos.x - 1, (int)curPos.y].IsAvailable)
+        if ((curPos.x > 0) && nodeGrid[(int)curPos.x - 1, (int)curPos.y].IsAvailable || nodeGrid[(int)curPos.x - 1, (int)curPos.y].Position == endPos)
         {
             Vector2 tempLeft = new Vector2((int)curPos.x - 1, (int)curPos.y);
             nodeGrid[(int)tempLeft.x, (int)tempLeft.y].Cost_ToStart = getDistance(startPos, tempLeft);
