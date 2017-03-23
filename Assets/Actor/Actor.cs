@@ -1,20 +1,27 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Utility;
 
-public class Actor : MonoBehaviour {
+public class Actor : MonoBehaviour
+{
+    public float health;
+    public float attackPower;
+    public float defense;
+    public int level;
     public int x, y;
     public Animator animator;
     public string currentAnimation = "idle_left";
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         animator.Play(currentAnimation);
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
         //       Debug.Log("actor playing anim " + currentAnimation);
         /*
         if(inMotion)
@@ -59,11 +66,11 @@ public class Actor : MonoBehaviour {
     // 1 = combat
     public int moveToPosition(int nx, int ny)
     {
-        if(nx >= 0 && nx < ApplicationConstants.DUNGEON_WIDTH &&
+        if (nx >= 0 && nx < ApplicationConstants.DUNGEON_WIDTH &&
             ny >= 0 && ny < ApplicationConstants.DUNGEON_HEIGHT)
         {
             var occupier = DungeonManager.WorldGrid[nx, ny].Actor;
-            if (occupier == null && DungeonManager.WorldGrid[nx,ny].Cost < 10000)
+            if (occupier == null && DungeonManager.WorldGrid[nx, ny].Cost < 10000)
             {
                 if (DungeonManager.moveActor(this, nx, ny))
                 {
@@ -73,7 +80,7 @@ public class Actor : MonoBehaviour {
                     return 0;
                 }
             }
-            else if(occupier != null)
+            else if (occupier != null)
             {
                 return 1;
             }
