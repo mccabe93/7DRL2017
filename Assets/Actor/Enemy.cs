@@ -1,7 +1,7 @@
 /*
 *TODO
 *   -Animations
-*   -moveToPosition(..) function isn't working
+*   -Have not tested actual combat yet
 */
 
 using System.Collections;
@@ -25,10 +25,12 @@ public class Enemy : Actor {
     {
         //initialize attributes
         level = 1;
+        health = 100; 
         setStatsByLevel();
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<Actor>();
         updatePlayerCoords();
     }
+    
 
     /*
     *@desc Checks to see if the player is 1 space away, then should engage in combat
@@ -119,6 +121,13 @@ public class Enemy : Actor {
     // Update is called once per frame
     void Update()
     {
+        //Death condition
+        if(health <= 0)
+        {
+            DestroyObject(gameObject);
+            return;
+        }
+
         canMove = true;
 
         //Not tested
