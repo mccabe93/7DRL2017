@@ -7,20 +7,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : Actor
 {
     //class variables
+<<<<<<< HEAD
+=======
+    private Direction currentDir;
+    public Slider healthBar;
+>>>>>>> 9afa0ef5ee2fe256a432f47b6e92c3f6a8e17433
 
     public void Start()
     {
+        healthBar = GameObject.FindGameObjectWithTag("HealthBar").GetComponent<Slider>();
         currentDir = Direction.West;
         level = 1;
         setStatsByLevel();
         animator = GetComponent<Animator>();
     }
 
-
+    public void Update()
+    {
+        setPlayerHealthBar();
+    }
 
     /*
     * @status Unfinished (need animations)
@@ -244,5 +254,18 @@ public class Player : Actor
         attackPower = 10f + ((level - 1) * 10f);
         defense = 0f + ((level - 1) * 10);
     }
+
+    /*
+    *@desc Sets the health bar
+    *@param null
+    *@return void
+    *@status Untested
+    */
+    public void setPlayerHealthBar()
+    {
+        if (healthBar.value != health)
+            healthBar.value = health;        
+    }
+
 
 }
