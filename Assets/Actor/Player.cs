@@ -12,11 +12,8 @@ using UnityEngine.UI;
 public class Player : Actor
 {
     //class variables
-<<<<<<< HEAD
-=======
     private Direction currentDir;
     public Slider healthBar;
->>>>>>> 9afa0ef5ee2fe256a432f47b6e92c3f6a8e17433
 
     public void Start()
     {
