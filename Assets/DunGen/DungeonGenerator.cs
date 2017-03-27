@@ -46,52 +46,14 @@ public class DungeonGenerator : MonoBehaviour {
         fillTinyRooms();
         getRoomCenters();
         connectRooms();
-        /*
-        for(int i = 0; i < rooms.Count; i++)
-        {
-            Debug.Log("center of room #" + i + " is " + roomCenters[i].x + ", " + roomCenters[i].y);
-            Debug.Log("closest room to room #" + i + " is room #" + findClosestRoom(i));
-        }
-        */
         map = new int[ApplicationConstants.DUNGEON_HEIGHT, ApplicationConstants.DUNGEON_WIDTH];
         for (int y = 0; y < automataMap.GetLength(0); y++)
             for (int x = 0; x < automataMap.GetLength(1); x++)
                 map[y, x] = automataMap[y, x];
         createCostGrid();
+        sodRandomRooms();
     }
-
-    public void renderDungeon()
-    {
-
-        for (int i = 0; i < map.GetLength(0); i++)
-        {
-            for (int j = 0; j < map.GetLength(1); j++)
-            {
-                //if (!(i == 0 && j == 7))
-                {
-                    GameObject tmp = null;
-                    if (map[i, j] == 0)
-                    {
-                        tmp = GameObject.Instantiate(Resources.Load("Environment/Wall")) as GameObject;
-                    }
-                    else if (map[i, j] == 1)
-                    {
-                        tmp = GameObject.Instantiate(Resources.Load("Environment/Ground")) as GameObject;
-                    }
-                    else if (map[i, j] == 2)
-                    {
-                        tmp = GameObject.Instantiate(Resources.Load("Environment/Visible_Ground")) as GameObject;
-                    }
-                    else if (map[i, j] == 99)
-                    {
-                        tmp = GameObject.Instantiate(Resources.Load("Environment/Player")) as GameObject;
-                    }
-                    tmp.transform.Translate(j * 0.16f, i * 0.16f, 0);
-                }
-            }
-        }
-    }
-
+    
     public void createCostGrid()
     {
         costGrid = new int[ApplicationConstants.DUNGEON_WIDTH, ApplicationConstants.DUNGEON_HEIGHT];
@@ -113,14 +75,49 @@ public class DungeonGenerator : MonoBehaviour {
         }
     }
 
+    public void sodRandomRooms()
+    {
+        foreach(var room in rooms)
+        {
+            if(Random.Range(0.0f, 1.0f) <= 0.2f)
+            {
+                foreach(var tile in room)
+                {
+                    if (map[tile.x, tile.y] == 1)
+                    {
+                        map[tile.x, tile.y] = 3;
+                    }
+                    else if (map[tile.x, tile.y] == 2)
+                    {
+                        map[tile.x, tile.y] = 4;
+                    }
+                }
+            }
+        }
+
+    }
+
     public static GameObject tileFromId(int id)
     {
+        int num = 1;
         switch(id)
         {
+            // rock walls
             case 0:
-                return GameObject.Instantiate(Resources.Load("Environment/Wall")) as GameObject;
+                num = Random.Range(1, 4);
+                return GameObject.Instantiate(Resources.Load("Environment/Rock"+num)) as GameObject;
+            // regular rock tile
             case 1:
-                return GameObject.Instantiate(Resources.Load("Environment/Floor")) as GameObject;
+                num = Random.Range(1, 7);
+                return GameObject.Instantiate(Resources.Load("Environment/Floor"+num)) as GameObject;
+            // grass
+            case 3:
+                num = Random.Range(1, 5);
+                return GameObject.Instantiate(Resources.Load("Environment/Grass" + num)) as GameObject;
+            // tree
+            case 4:
+                num = Random.Range(1, 4);
+                return GameObject.Instantiate(Resources.Load("Environment/Tree" + num)) as GameObject;
             case 2:
                 break;
         }

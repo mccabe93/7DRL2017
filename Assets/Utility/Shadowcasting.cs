@@ -26,7 +26,7 @@ public class Shadowcasting : MonoBehaviour
             if(dg.map[(int)tile.y, (int)tile.x] != 0)
                 dg.map[(int)tile.y, (int)tile.x] = 2;
         }
-        dg.renderDungeon();
+        // dg.renderDungeon();
 	}
 	
     public void getVisibleCells()

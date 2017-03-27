@@ -11,7 +11,6 @@ using UnityEngine;
 public class Player : Actor
 {
     //class variables
-    private Direction currentDir;
 
     public void Start()
     {
@@ -34,49 +33,49 @@ public class Player : Actor
        
         if (Input.GetKeyDown(KeyCode.S))
         {
+            currentDir = Direction.West;
             moveToPosition(x - 1, y);
             if(x == lastX && y == lastY)
             {
                 //Then we weren't able to move, and have not moved. But need to flip the Sprite
                 //Flip to West facing sprite
             }
-            currentDir = Direction.West;
         }
             
         else if (Input.GetKeyDown(KeyCode.W))
         {
+            currentDir = Direction.East;
             moveToPosition(x + 1, y);
             if (x == lastX && y == lastY)
             {
                 //Then we weren't able to move, and have not moved. But need to flip the Sprite
                 //Flip to East facing sprite
             }
-            currentDir = Direction.East;
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
+            currentDir = Direction.North;
             moveToPosition(x, y - 1);
             if (x == lastX && y == lastY)
             {
                 //Then we weren't able to move, and have not moved. But need to flip the Sprite
                 //Flip to North facing sprite
             }
-            currentDir = Direction.North;
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
+            currentDir = Direction.South;
             moveToPosition(x, y + 1);
             if (x == lastX && y == lastY)
             {
                 //Then we weren't able to move, and have not moved. But need to flip the Sprite
                 //Flip to South facing sprite
             }
-            currentDir = Direction.South;
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
             //moveToPosition(x, y);
-            animator.Play("attack_left");
+            attack();
         }
         /*
         // octodirectional controls
@@ -165,6 +164,23 @@ public class Player : Actor
             return;
 
         //Attack animation
+        string anim = null;
+        switch (currentDir)
+        {
+            case Direction.South:
+                anim = "attack_right";
+                break;
+            case Direction.West:
+                anim = "attack_left";
+                break;
+            case Direction.East:
+                anim = "attack_back_right";
+                break;
+            case Direction.North:
+                anim = "attack_back_left";
+                break;
+        }
+        animator.Play(anim);
 
         //Combat stats
         Enemy enemyComp = en.GetComponent<Enemy>();
@@ -229,12 +245,4 @@ public class Player : Actor
         defense = 0f + ((level - 1) * 10);
     }
 
-}
-
-enum Direction
-{
-    North,
-    East,
-    South,
-    West
 }

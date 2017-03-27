@@ -5,6 +5,14 @@ using Utility;
 
 public class Actor : MonoBehaviour
 {
+    public enum Direction
+    {
+        North,
+        East,
+        South,
+        West
+    }
+
     public float health;
     public float attackPower;
     public float defense;
@@ -12,7 +20,7 @@ public class Actor : MonoBehaviour
     public int x, y;
     public Animator animator;
     public string currentAnimation = "idle_left";
-
+    protected Direction currentDir = Direction.West;
     // Use this for initialization
     void Start()
     {
@@ -44,7 +52,22 @@ public class Actor : MonoBehaviour
 
     public void returnToIdle()
     {
-        animator.Play("idle_left");
+        string anim = null;
+        switch (currentDir) {
+            case Direction.South:
+                anim = "idle_right";
+                break;
+            case Direction.West:
+                anim = "idle_left";
+                break;
+            case Direction.East:
+                anim = "idle_back_right";
+                break;
+            case Direction.North:
+                anim = "idle_back_left";
+                break;
+        }
+        animator.Play(anim);
     }
 
     public void setCurrentAnimation(string anim)
@@ -76,7 +99,23 @@ public class Actor : MonoBehaviour
                 {
                     x = nx;
                     y = ny;
-                    animator.Play("run_left");
+                    string anim = null;
+                    switch (currentDir)
+                    {
+                        case Direction.South:
+                            anim = "move_right";
+                            break;
+                        case Direction.West:
+                            anim = "move_left";
+                            break;
+                        case Direction.East:
+                            anim = "move_back_right";
+                            break;
+                        case Direction.North:
+                            anim = "move_back_left";
+                            break;
+                    }
+                    animator.Play(anim);
                     return 0;
                 }
             }
